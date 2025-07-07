@@ -323,6 +323,29 @@ def pia_wm_soma_from_database(specimen_id, imser_id):
     pia_surface, wm_surface = query_for_cortical_surfaces(imser_id, specimen_id, query_engine=engine)
     soma_center = query_for_soma_center(imser_id, specimen_id, query_engine=engine)
 
+    #Special case manually rotate pia & wm paths CCW around the soma
+    manual_rotation_dict = {
+        1217796585: 45,
+        1217795400: 45, 
+        1193556302: 35
+    }
+    if specimen_id in manual_rotation_dict.keys():
+        rot_deg = manual_rotation_dict[specimen_id]
+        theta = np.deg2rad(rot_deg) 
+
+        #CCW rotation 
+        rotation_matrix = np.array([
+            [np.cos(theta), -np.sin(theta)],
+            [np.sin(theta),  np.cos(theta)]
+        ])
+
+        soma_x = soma_center['center'][0]
+        soma_y = soma_center['center'][1]
+
+        pia_surface["path"] = (pia_surface["path"] - np.array([soma_x, soma_y])) @ rotation_matrix.T + np.array([soma_x, soma_y])
+        wm_surface["path"] = (wm_surface["path"] - np.array([soma_x, soma_y])) @ rotation_matrix.T + np.array([soma_x, soma_y])
+        soma_center["path"] = (soma_center["path"] - np.array([soma_x, soma_y])) @ rotation_matrix.T + np.array([soma_x, soma_y])
+
     return pia_surface, wm_surface, soma_center
 
 
@@ -424,7 +447,7 @@ def _identify_soma_marker(morph, markers, marker_tol=10.0):
     return soma_marker
 
 
-def layer_polygons_from_database(image_series_id):
+def layer_polygons_from_database(image_series_id, specimen_id=None, soma_drawing=None):
     """Obtain layer drawing polygons from database
 
     Parameters
@@ -440,6 +463,28 @@ def layer_polygons_from_database(image_series_id):
     engine = default_query_engine()
     layer_polygons = query_for_layer_polygons(image_series_id, query_engine=engine)
     layer_polygons = [l for l in layer_polygons if len(l["path"]) >= 3]
+
+    #Special case manually rotate pia & wm paths CCW around the soma
+    manual_rotation_dict = {
+        1217796585: 45,
+        1217795400: 45, 
+        1193556302: 35
+    }
+    if (not specimen_id is None) and (not soma_drawing is None) and (specimen_id in manual_rotation_dict.keys()):
+        rot_deg = manual_rotation_dict[specimen_id]
+        theta = np.deg2rad(rot_deg) 
+
+        #CCW rotation 
+        rotation_matrix = np.array([
+            [np.cos(theta), -np.sin(theta)],
+            [np.sin(theta),  np.cos(theta)]
+        ])
+
+        soma_x = soma_drawing['center'][0]
+        soma_y = soma_drawing['center'][1]
+
+        layer_polygons = [(l - np.array([soma_x, soma_y])) @ rotation_matrix.T + np.array([soma_x, soma_y]) for l in layer_polygons]
+
     return layer_polygons
 
 
