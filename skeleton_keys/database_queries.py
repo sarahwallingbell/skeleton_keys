@@ -381,7 +381,7 @@ def shrinkage_factor_from_database(morph, specimen_id, cut_thickness=350.):
         max_z_extent = np.max(all_z) - np.min(all_z)
         min_slice_thickness = max_z_extent * scale
 
-        if min_slice_thickness <= cut_thickness:
+        if (min_slice_thickness <= cut_thickness) & (scale >= 1):
             corrected_scale = scale
         else:
             corrected_scale = cut_thickness / max_z_extent
