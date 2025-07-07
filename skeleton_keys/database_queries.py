@@ -390,6 +390,11 @@ def shrinkage_factor_from_database(morph, specimen_id, cut_thickness=350.):
         max_z_extent = np.max(all_z) - np.min(all_z)
         corrected_scale = cut_thickness / max_z_extent
 
+    # if shrinkage factor is > 99th percentile of human cortical shrinkage factors, 
+    # set it to the average shrinkage factor for the same dataset
+    if corrected_scale > 4: 
+        corrected_scale = 2.088 
+
     return corrected_scale
 
 
