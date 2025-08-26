@@ -136,7 +136,7 @@ def main(args):
         )
 
         # Query for layers
-        layer_polygons = layer_polygons_from_database(imser_id)
+        layer_polygons = layer_polygons_from_database(imser_id, specimen_id, soma_drawing)
 
     # Remove any duplicate coordinates from surfaces
     pia_surface = remove_duplicate_coordinates_from_drawings(pia_surface)
@@ -178,6 +178,7 @@ def main(args):
         soma_path,
     )
     upright_angle = get_upright_angle(gradient_field)
+    
     # Correct for shrinkage and/or slice angle if requested
     if args["correct_for_shrinkage"] or args["correct_for_slice_angle"]:
         if args["correct_for_shrinkage"]:

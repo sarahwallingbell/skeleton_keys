@@ -78,3 +78,6 @@ target/
 sandbox/
 .env
 .DS_Store
+
+#notebooks
+.ipynb

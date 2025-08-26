@@ -324,13 +324,14 @@ def pia_wm_soma_from_database(specimen_id, imser_id):
     soma_center = query_for_soma_center(imser_id, specimen_id, query_engine=engine)
 
     #Special case manually rotate pia & wm paths CCW around the soma
-    manual_rotation_dict = {
+    special_cases = {
         1217796585: 45,
-        1217795400: 45, 
-        1193556302: 35
+        1193556302: 35,
+        919968983: 305,
+        920009568: 25
     }
-    if specimen_id in manual_rotation_dict.keys():
-        rot_deg = manual_rotation_dict[specimen_id]
+    if specimen_id in special_cases.keys():
+        rot_deg = special_cases[specimen_id]
         theta = np.deg2rad(rot_deg) 
 
         #CCW rotation 
@@ -465,13 +466,14 @@ def layer_polygons_from_database(image_series_id, specimen_id=None, soma_drawing
     layer_polygons = [l for l in layer_polygons if len(l["path"]) >= 3]
 
     #Special case manually rotate pia & wm paths CCW around the soma
-    manual_rotation_dict = {
+    special_cases = {
         1217796585: 45,
-        1217795400: 45, 
-        1193556302: 35
+        1193556302: 35,
+        919968983: 305,
+        920009568: 25
     }
-    if (not specimen_id is None) and (not soma_drawing is None) and (specimen_id in manual_rotation_dict.keys()):
-        rot_deg = manual_rotation_dict[specimen_id]
+    if (not specimen_id is None) and (not soma_drawing is None) and (specimen_id in special_cases.keys()):
+        rot_deg = special_cases[specimen_id]
         theta = np.deg2rad(rot_deg) 
 
         #CCW rotation 
@@ -483,7 +485,12 @@ def layer_polygons_from_database(image_series_id, specimen_id=None, soma_drawing
         soma_x = soma_drawing['center'][0]
         soma_y = soma_drawing['center'][1]
 
-        layer_polygons = [(l - np.array([soma_x, soma_y])) @ rotation_matrix.T + np.array([soma_x, soma_y]) for l in layer_polygons]
+        layer_polygons = [
+        {
+            **l,
+            "path": [((np.array([x, y]) - np.array([soma_x, soma_y])) @ rotation_matrix.T + np.array([soma_x, soma_y])).tolist() for x, y in l['path']]
+        } for l in layer_polygons
+    ]
 
     return layer_polygons
 
