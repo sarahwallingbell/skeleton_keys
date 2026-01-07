@@ -328,7 +328,8 @@ def pia_wm_soma_from_database(specimen_id, imser_id):
         1217796585: 45,
         1193556302: 35,
         919968983: 305,
-        920009568: 25
+        920009568: 25,
+        1133498455: 256
     }
     if specimen_id in special_cases.keys():
         rot_deg = special_cases[specimen_id]
@@ -470,7 +471,8 @@ def layer_polygons_from_database(image_series_id, specimen_id=None, soma_drawing
         1217796585: 45,
         1193556302: 35,
         919968983: 305,
-        920009568: 25
+        920009568: 25,
+        1133498455: 256
     }
     if (not specimen_id is None) and (not soma_drawing is None) and (specimen_id in special_cases.keys()):
         rot_deg = special_cases[specimen_id]
