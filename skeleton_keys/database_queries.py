@@ -9,7 +9,7 @@ except ImportError:
 from functools import partial
 from neuron_morphology.marker import read_marker_file
 from neuron_morphology.snap_polygons.types import ensure_path
-
+from skeleton_keys.shrinkage import SHRINKAGE_ADJUSTMENTS 
 
 def default_query_engine():
     """Get Postgres query engine with environmental variable parameters"""
@@ -326,16 +326,17 @@ def pia_wm_soma_from_database(specimen_id, imser_id):
     return pia_surface, wm_surface, soma_center
 
 
-def shrinkage_factor_from_database(morph, specimen_id, cut_thickness=350.):
+def shrinkage_factor_from_database(morph, specimen_id, shrinkage_adjustment_tag, cut_thickness=350.):
     """Determine shrinkage factor for morphology using database information
 
     Parameters
     ----------
     morph : Morphology
         Neuronal morphology
-    cut_thickness : float, default 350.
     specimen_id : int
         Specimen ID
+    shrinkage_adjustment_tag : string
+        Dataset tag for overwriting large shrinkage values with a mean value. 
     cut_thickness : float, default 350.
         The cutting thickness (in microns) of the original slice. Used
         as an upper limit to the calculated thickness or as a fallback value
@@ -390,10 +391,16 @@ def shrinkage_factor_from_database(morph, specimen_id, cut_thickness=350.):
         max_z_extent = np.max(all_z) - np.min(all_z)
         corrected_scale = cut_thickness / max_z_extent
 
-    # if shrinkage factor is > 99th percentile of human cortical shrinkage factors, 
-    # set it to the average shrinkage factor for the same dataset
-    if corrected_scale > 4: 
-        corrected_scale = 2.088 
+    if shrinkage_adjustment_tag is not None:
+        try:
+            adjustments = SHRINKAGE_ADJUSTMENTS[shrinkage_adjustment_tag]
+        except KeyError:
+            raise ValueError(f"Unknown shrinkage adjustment tag: {shrinkage_adjustment_tag}")
+
+        if corrected_scale > adjustments['p99']: 
+            # shrinkage val is greater than 99th percentile of shrinkage vals
+            # in this dataset, overwrite it with the mean of the dataset. 
+            corrected_scale = adjustments['mean_shrinkage']
 
     return corrected_scale
 
