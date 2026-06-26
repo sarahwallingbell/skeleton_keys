@@ -51,6 +51,11 @@ class LayerAlignedSwcSchema(ags.ArgSchema):
         default=True,
         description="Whether to correct for shrinkage",
     )
+    shrinkage_adjustment_tag = ags.fields.String(
+        default=None,
+        allow_none=True,
+        description='Dataset tag for overwriting large shrinkage vals with mean'
+    )
     correct_for_slice_angle = ags.fields.Boolean(
         default=True,
         description="Whether to correct for slice angle",
@@ -183,7 +188,7 @@ def main(args):
     if args["correct_for_shrinkage"] or args["correct_for_slice_angle"]:
         if args["correct_for_shrinkage"]:
             logging.info("Calculating shrinkage correction factor")
-            shrink_factor = shrinkage_factor_from_database(morph, specimen_id)
+            shrink_factor = shrinkage_factor_from_database(morph, specimen_id, args["shrinkage_adjustment_tag"])
         else:
             shrink_factor = 1
 
